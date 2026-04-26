@@ -1,0 +1,161 @@
+---
+title: "CRISP-DM Skills Check (Penguins)"
+author: "Alona, Karoline, Julio"
+output:
+  html_document:
+    toc: true
+    toc_depth: 2
+    number_sections: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+set.seed(42)
+
+# selects the mirror.
+chooseCRANmirror(ind=81)
+
+#Run once and then comment out:
+# install.packages(c("pandoc"))
+# library(pandoc)
+# pandoc_install("3.7.0.2")
+
+#Run once and then comment out:
+# install.packages(c("palmerpenguins","tidyverse","ggplot2", "caret", "rpart", "rpart.plot", "randomForest", "e1071", "class", "kknn", "gbm", "xgboost", "nnet", "pROC", "MLmetrics"))
+
+# load libraries
+library(palmerpenguins)
+library(tidyverse)
+library(ggplot2)
+
+# TODO: use only libraries needed for this work and remove unused ones.
+# Add any other libraries you need here:
+library(caret)          # train/test split, confusionMatrix,unified model interface
+library(rpart)          # Decision Tree
+library(rpart.plot)     # nice tree visualization
+library(randomForest)   # Random Forest
+library(e1071)          # Naïve Bayes + SVM
+library(class)          # KNN (basic version)
+library(kknn)           # KNN via caret
+library(gbm)            # Gradient Boosting Trees
+library(xgboost)        # alternative gradient boosting (faster, more popular)
+library(nnet)           # simple Neural Networks (built-in style)
+
+# Evaluation extras
+library(pROC)           # ROC curves (slide 11 of your lecture)
+library(MLmetrics)      # F1 score helper if confusionMatrix isn't enough
+
+```
+
+# Executive summary (3–5 sentences)
+*Please enter what you asked, what you did, key results, one implication here.*
+
+# Framing the Problem
+- **Question:** *Please enter your question here.*
+- **Data:** Palmer Penguins dataset (3 species, 7 variables, 344 rows).
+- **Modeling task:** *Please enter your task here.*
+- **Success:** *Please enter the metric to measure the success of your model here.*
+
+# Data Understanding
+Load data and show its structure. Minimum requirements:
+
+- Analysis of missing values.
+- 2 visualizations with takeaways.
+
+```{r}
+# Load data
+data <- data("penguins", package = "palmerpenguins")
+
+# Shows only first 6 rows of the data frame
+head(penguins)
+
+# Number of rows and columns
+dim(penguins)  # 344 rows and 8 columns
+
+# Check the data formats
+str(penguins)
+
+# Check for duplicated values
+duplicated_rows <- duplicated(penguins)
+# Print the result
+if (any(duplicated_rows)) {
+  print("There are duplicated rows.")
+} else {
+  print("No duplicated rows found.")
+}
+
+# Summary statistics
+summary(penguins)
+
+#interactive spreadsheet-like display of the data frame in RStudio
+# View(penguins)
+
+# Calculate the share of missing values per column
+missing_values_share <- colMeans(is.na(penguins))
+# Print the result
+print(missing_values_share)
+
+#!!!!!HERE WE NEED TO REMOVE MISSING VALUES
+
+```
+
+# Explorative Data Analysis
+Minimum requirements:
+
+- Distribution of numeric variables
+- Relationship between 2 numeric variables
+```{r}
+
+```
+
+**Takeaways (bullets):**
+
+- Pattern 1: *Please enter your observations here.*
+- Pattern 2: *Please enter your observations here.*
+- Missing values/outliers: *Please enter your observations here.*
+
+# Data Preparation
+Minimum requirements:
+
+- Drop or impute missing values (explain why)
+- Convert categorical variables to factors
+```{r}
+
+```
+*Note your choices in 1–2 sentences (what you dropped/kept and why).*
+
+# Modeling (pick classification or clustering and delete the other section)
+
+## Classification
+Minimum requirements:
+
+- Train/test split (80/20)
+- One classification model (e.g., logistic regression, decision tree)
+- Report KPI to evaluate
+```{r}
+
+```
+
+*1–2 sentences: which classes confuse and why?*
+
+## Clustering
+Minimum requirements:
+
+- Definition of number of clusters
+- One clustering model (e.g., k-means, hierarchical)
+- Report KPI to evaluate
+```{r}
+
+```
+*1–2 sentences: profile each cluster.*
+
+# Evaluation & Validation
+Minimum requirements:
+
+- **Metric:** *Please report final metric on test set.*
+- **Interpretation (2–4 sentences):** *Please enter the strengths, failure modes (e.g., which species are confused), class imbalance etc here.*
+
+# AI Assistance (brief)
+- **Tools used:** *Please enter the tools you used (e.g., GitHub Copilot, ChatGPT) here.*
+- **One prompt:** *Please paste one representative prompt that led to useful code here.*
+- **How validated:** *Please describe how you checked correctness (e.g., sanity checks on metrics/plots) of the prompt outputs here.*

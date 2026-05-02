@@ -388,10 +388,18 @@ measurements predict the sex of Gentoo penguins, and which features are
 most informative?</em></li>
 <li><strong>Data:</strong> Palmer Penguins dataset (3 species, 7
 variables, 344 rows).</li>
-<li><strong>Modeling task:</strong> <em>Please enter your task
-here.</em></li>
-<li><strong>Success:</strong> <em>Please enter the metric to measure the
-success of your model here.</em></li>
+<li><strong>Modeling task:</strong> <em>Binary classification —
+predicting <code>sex</code> (female / male) from four physical
+measurements (<code>bill_length_mm</code>, <code>bill_depth_mm</code>,
+<code>flipper_length_mm</code>, <code>body_mass_g</code>) using a
+decision tree (<code>rpart</code>). The tree’s split structure also
+reveals which features are most informative, directly addressing the
+second part of the research question.</em></li>
+<li><strong>Success:</strong> <em>Accuracy as the primary metric, since
+the two classes are roughly balanced within Gentoo penguins. F1-score is
+reported alongside as a robustness check. We compare results to a
+majority-class baseline (~50% accuracy) to confirm that the model
+captures real signal beyond chance.</em></li>
 </ul>
 </div>
 <div id="data-understanding" class="section level1" number="3">
@@ -553,8 +561,45 @@ extreme outliers are visible in the boxplots.</em></li>
 <li>Drop or impute missing values (explain why)</li>
 <li>Convert categorical variables to factors</li>
 </ul>
-<p><em>Note your choices in 1–2 sentences (what you dropped/kept and
-why).</em></p>
+<pre class="r"><code># Filter to Gentoo, drop incomplete rows, ensure factors
+gentoo_clean &lt;- penguins %&gt;%
+        filter(species == &quot;Gentoo&quot;) %&gt;%
+        drop_na() %&gt;%
+        mutate(
+                sex     = factor(sex),
+                species = factor(species),
+                island  = factor(island)
+        )
+
+# Verification of the cleaned dataset
+dim(gentoo_clean)</code></pre>
+<pre><code>## [1] 119   8</code></pre>
+<pre class="r"><code>table(gentoo_clean$sex)</code></pre>
+<pre><code>## 
+## female   male 
+##     58     61</code></pre>
+<pre class="r"><code>summary(gentoo_clean)</code></pre>
+<pre><code>##    species       island    bill_length_mm  bill_depth_mm   flipper_length_mm
+##  Gentoo:119   Biscoe:119   Min.   :40.90   Min.   :13.10   Min.   :203.0    
+##                            1st Qu.:45.35   1st Qu.:14.20   1st Qu.:212.0    
+##                            Median :47.40   Median :15.00   Median :216.0    
+##                            Mean   :47.57   Mean   :15.00   Mean   :217.2    
+##                            3rd Qu.:49.60   3rd Qu.:15.75   3rd Qu.:221.5    
+##                            Max.   :59.60   Max.   :17.30   Max.   :231.0    
+##   body_mass_g       sex          year     
+##  Min.   :3950   female:58   Min.   :2007  
+##  1st Qu.:4700   male  :61   1st Qu.:2007  
+##  Median :5050               Median :2008  
+##  Mean   :5092               Mean   :2008  
+##  3rd Qu.:5500               3rd Qu.:2009  
+##  Max.   :6300               Max.   :2009</code></pre>
+<p><em>We restrict the dataset to Gentoo penguins (the population of our
+research question) and drop rows with any missing values, leaving 119
+complete observations. Categorical variables (sex, species, island) are
+converted to factors so they can be used directly by the decision-tree
+model. Imputation is not used: missingness is small (~4% of Gentoos),
+and simple deletion is more transparent and avoids introducing
+assumptions.</em></p>
 </div>
 <div id="modeling-pick-classification-or-clustering-and-delete-the-other-section" class="section level1" number="6">
 <h1><span class="header-section-number">6</span> Modeling (pick

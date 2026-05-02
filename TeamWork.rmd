@@ -53,8 +53,8 @@ library(MLmetrics)      # F1 score helper if confusionMatrix isn't enough
 # Framing the Problem
 - **Question:** *To what extent can physical measurements predict the sex of Gentoo penguins, and which features are most informative?*
 - **Data:** Palmer Penguins dataset (3 species, 7 variables, 344 rows).
-- **Modeling task:** *Please enter your task here.*
-- **Success:** *Please enter the metric to measure the success of your model here.*
+- **Modeling task:** *Binary classification — predicting `sex` (female / male) from four physical measurements (`bill_length_mm`, `bill_depth_mm`, `flipper_length_mm`, `body_mass_g`) using a decision tree (`rpart`). The tree's split structure also reveals which features are most informative, directly addressing the second part of the research question.*
+- **Success:** *Accuracy as the primary metric, since the two classes are roughly balanced within Gentoo penguins. F1-score is reported alongside as a robustness check. We compare results to a majority-class baseline (~50% accuracy) to confirm that the model captures real signal beyond chance.*
 
 # Data Understanding
 Load data and show its structure. Minimum requirements:
@@ -162,9 +162,22 @@ Minimum requirements:
 - Drop or impute missing values (explain why)
 - Convert categorical variables to factors
 ```{r}
+# Filter to Gentoo, drop incomplete rows, ensure factors
+gentoo_clean <- penguins %>%
+        filter(species == "Gentoo") %>%
+        drop_na() %>%
+        mutate(
+                sex     = factor(sex),
+                species = factor(species),
+                island  = factor(island)
+        )
 
+# Verification of the cleaned dataset
+dim(gentoo_clean)
+table(gentoo_clean$sex)
+summary(gentoo_clean)
 ```
-*Note your choices in 1–2 sentences (what you dropped/kept and why).*
+*We restrict the dataset to Gentoo penguins (the population of our research question) and drop rows with any missing values, leaving 119 complete observations. Categorical variables (sex, species, island) are converted to factors so they can be used directly by the decision-tree model. Imputation is not used: missingness is small (~4% of Gentoos), and simple deletion is more transparent and avoids introducing assumptions.*
 
 # Modeling (pick classification or clustering and delete the other section)
 

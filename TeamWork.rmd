@@ -1,6 +1,6 @@
 ---
 title: "CRISP-DM Skills Check (Penguins)"
-author: "Alona, Karoline, Julio"
+author: "Alona Lagodzia, Karoline Kiliyilathu, Julio Dinis"
 output:
   html_document:
     toc: true
@@ -19,6 +19,7 @@ chooseCRANmirror(ind=81)
 # install.packages(c("pandoc"))
 # library(pandoc)
 # pandoc_install("3.7.0.2")
+# chooseCRANmirror(ind=81)
 
 #Run once and then comment out:
 # install.packages(c("palmerpenguins","tidyverse","ggplot2", "caret", "rpart", "rpart.plot", "randomForest", "e1071", "class", "kknn", "gbm", "xgboost", "nnet", "pROC", "MLmetrics"))
@@ -47,8 +48,13 @@ library(MLmetrics)      # F1 score helper if confusionMatrix isn't enough
 
 ```
 
-# Executive summary (3–5 sentences)
-*Please enter what you asked, what you did, key results, one implication here.*
+# Executive summary
+**...###PLACE HOLDER (TO BE REVIEWED)###...**
+This project investigates whether physical measurements can be used to predict the sex of Gentoo penguins. Using the Palmer Penguins dataset, we trained a decision tree model based on bill dimensions, flipper length, and body mass.
+
+The model achieves strong performance, with an accuracy of 0.913 and an F1 score of 0.923, significantly outperforming a baseline of approximately 52%. Body mass and bill depth are identified as the most informative features.
+
+These results show that simple, interpretable models can effectively capture biological differences between male and female penguins.
 
 # Framing the Problem
 - **Question:** *To what extent can physical measurements predict the sex of Gentoo penguins, and which features are most informative?*
@@ -57,11 +63,6 @@ library(MLmetrics)      # F1 score helper if confusionMatrix isn't enough
 - **Success:** *Accuracy as the primary metric, since the two classes are roughly balanced within Gentoo penguins. F1-score is reported alongside as a robustness check. We compare results to a majority-class baseline (~50% accuracy) to confirm that the model captures real signal beyond chance.*
 
 # Data Understanding
-Load data and show its structure. Minimum requirements:
-
-- Analysis of missing values.
-- 2 visualizations with takeaways.
-
 ```{r}
 # Load data
 data <- data("penguins", package = "palmerpenguins")
@@ -108,10 +109,7 @@ table(gentoo_overview$sex, useNA = "ifany")
 ```
 
 # Explorative Data Analysis
-Minimum requirements:
 
-- Distribution of numeric variables
-- Relationship between 2 numeric variables
 ```{r}
 
 # Filter to Gentoo, drop NAs in measurement & sex columns for plotting only
@@ -157,10 +155,7 @@ ggplot(gentoo_eda, aes(x = body_mass_g, y = bill_length_mm, color = sex)) +
 - Missing values/outliers: *Within Gentoo, 5 of 124 rows have missing values (mostly in sex); these are dropped during preparation. No extreme outliers are visible in the boxplots.*
 
 # Data Preparation
-Minimum requirements:
 
-- Drop or impute missing values (explain why)
-- Convert categorical variables to factors
 ```{r}
 # Filter to Gentoo, drop incomplete rows, ensure factors
 gentoo_clean <- penguins %>%
@@ -179,28 +174,96 @@ summary(gentoo_clean)
 ```
 *We restrict the dataset to Gentoo penguins (the population of our research question) and drop rows with any missing values, leaving 119 complete observations. Categorical variables (sex, species, island) are converted to factors so they can be used directly by the decision-tree model. Imputation is not used: missingness is small (~4% of Gentoos), and simple deletion is more transparent and avoids introducing assumptions.*
 
-# Modeling (pick classification or clustering and delete the other section)
+# Modeling
 
 ## Classification
-Minimum requirements:
 
-- Train/test split (80/20)
-- One classification model (e.g., logistic regression, decision tree)
-- Report KPI to evaluate
 ```{r}
+# Select target and predictor variables
+model_data <- gentoo_clean %>%
+        select(sex, bill_length_mm, bill_depth_mm, flipper_length_mm, body_mass_g)
+
+# Stratified 80/20 train-test split
+set.seed(42)
+split_index <- createDataPartition(model_data$sex, p = 0.8, list = FALSE)
+
+train_data <- model_data[split_index, ]
+test_data  <- model_data[-split_index, ]
+
+# Verify split and class balance
+dim(train_data)
+dim(test_data)
+
+table(train_data$sex)
+table(test_data$sex)
+
+# Majority-class baseline
+baseline_class <- names(which.max(table(train_data$sex)))
+baseline_accuracy <- mean(test_data$sex == baseline_class)
+
+cat("Majority-class baseline accuracy:", round(baseline_accuracy, 3), "\n")
+
+# Fit decision tree model
+tree_model <- rpart(
+        sex ~ bill_length_mm + bill_depth_mm + flipper_length_mm + body_mass_g,
+        data = train_data,
+        method = "class"
+)
+
+# Visualize the decision tree
+rpart.plot(
+        tree_model,
+        type = 4,
+        extra = 104,
+        main = "Decision tree: predicting Gentoo penguin sex"
+)
+
+# Predict on test set
+test_preds <- predict(tree_model, newdata = test_data, type = "class")
+
+# Confusion matrix
+cm <- confusionMatrix(test_preds, test_data$sex, positive = "male")
+cm
+
+# Extract metrics
+accuracy <- cm$overall["Accuracy"]
+f1_score <- cm$byClass["F1"]
+
+cat("Test accuracy:", round(accuracy, 3), "\n")
+cat("F1 score:", round(f1_score, 3), "\n")
+
+# Feature importance
+tree_model$variable.importance
+
+importance_df <- data.frame(
+        variable = names(tree_model$variable.importance),
+        importance = as.numeric(tree_model$variable.importance)
+)
+
+ggplot(importance_df, aes(x = reorder(variable, importance), y = importance)) +
+        geom_col() +
+        coord_flip() +
+        labs(
+                title = "Feature importance from decision tree",
+                x = "Predictor",
+                y = "Importance score"
+        ) +
+        theme_minimal()
 
 ```
 
-*1–2 sentences: which classes confuse and why?*
+*The model is a decision tree trained on 80% of the cleaned Gentoo dataset and evaluated on the remaining 20%. Accuracy is used as the primary metric because the classes are approximately balanced, while F1-score is included as a robustness check.*
+
 
 # Evaluation & Validation
-Minimum requirements:
 
-- **Metric:** *Please report final metric on test set.*
-- **Interpretation (2–4 sentences):** *Please enter the strengths, failure modes (e.g., which species are confused), class imbalance etc here.*
+- **Metric:** *The model achieves an accuracy of 0.913 and an F1 score of 0.923 on the test set, clearly outperforming the baseline accuracy of approximately 0.52.*
 
-# AI Assistance (brief)
-- **Tools used:** *Please enter the tools you used (e.g., GitHub Copilot, ChatGPT) here
-- Claude Opus 4.7 Adaptive.*
-- **One prompt:** *Please paste one representative prompt that led to useful code here.*
-- **How validated:** *Please describe how you checked correctness (e.g., sanity checks on metrics/plots) of the prompt outputs here.*
+- **Interpretation** *- The model performs well on a balanced test set (11 female, 12 male), correctly classifying all male penguins and misclassifying only 2 female penguins. Feature importance shows that body mass (33.35) and bill depth (25.32) are the most influential predictors, consistent with patterns observed in the EDA. These results indicate that the model captures the main structure of the data. A limitation is the small test set (23 observations), so results should be interpreted as an estimate rather than a definitive measure.
+
+
+
+# AI Assistance
+- **Tools used:** *Claude Opus 4.7 Adaptive; GitHub Copilot (GPT-5.2-Codex)*
+- **One prompt:** *We are using the Palmer Penguins dataset for a Fundamentals of Data Science homework. Our question is whether physical measurements can predict the sex of Gentoo penguins. Help us implement a simple decision tree model in R with an 80/20 train-test split, confusion matrix, accuracy, F1 score, and feature importance.*
+- **How validated:** *We validated the AI-assisted code and text by running the full R Markdown file without errors, checking that the 80/20 train-test split preserved class balance, comparing the model accuracy to a majority-class baseline, and inspecting the confusion matrix. We also checked that the feature importance results were consistent with the EDA plots, especially the visible separation by body mass and bill depth.*

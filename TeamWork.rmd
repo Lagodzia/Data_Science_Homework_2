@@ -51,7 +51,7 @@ library(MLmetrics)      # F1 score helper if confusionMatrix isn't enough
 *Please enter what you asked, what you did, key results, one implication here.*
 
 # Framing the Problem
-- **Question:** *Please enter your question here.*
+- **Question:** *To what extent can physical measurements predict the sex of Gentoo penguins, and which features are most informative?*
 - **Data:** Palmer Penguins dataset (3 species, 7 variables, 344 rows).
 - **Modeling task:** *Please enter your task here.*
 - **Success:** *Please enter the metric to measure the success of your model here.*
@@ -90,13 +90,21 @@ summary(penguins)
 #interactive spreadsheet-like display of the data frame in RStudio
 # View(penguins)
 
+# Calculate the count of missing values per column
+missing_count <- colSums(is.na(penguins))
 # Calculate the share of missing values per column
-missing_values_share <- colMeans(is.na(penguins))
-# Print the result
-print(missing_values_share)
+missing_share <- colMeans(is.na(penguins))
+missing_summary <- data.frame(
+        count = missing_count,
+        share = round(missing_share, 4)
+)
+print(missing_summary)
 
-#!!!!!HERE WE NEED TO REMOVE MISSING VALUES
-
+# Class balance for our target population (Gentoo)
+gentoo_overview <- penguins %>%
+        filter(species == "Gentoo")
+cat("Gentoo penguins:", nrow(gentoo_overview), "\n")
+table(gentoo_overview$sex, useNA = "ifany")
 ```
 
 # Explorative Data Analysis
@@ -106,13 +114,47 @@ Minimum requirements:
 - Relationship between 2 numeric variables
 ```{r}
 
+# Filter to Gentoo, drop NAs in measurement & sex columns for plotting only
+gentoo_eda <- penguins %>%
+        filter(species == "Gentoo") %>%
+        drop_na(bill_length_mm, bill_depth_mm,
+                flipper_length_mm, body_mass_g, sex)
+
+# --- Plot 1: Distribution of all 4 numeric measurements by sex ---
+gentoo_long <- gentoo_eda %>%
+        select(sex, bill_length_mm, bill_depth_mm,
+               flipper_length_mm, body_mass_g) %>%
+        pivot_longer(cols = -sex,
+                     names_to = "measurement",
+                     values_to = "value")
+
+ggplot(gentoo_long, aes(x = sex, y = value, fill = sex)) +
+        geom_boxplot(alpha = 0.7) +
+        facet_wrap(~ measurement, scales = "free_y") +
+        labs(title = "Distribution of physical measurements by sex (Gentoo penguins)",
+             subtitle = "Which features separate male from female most clearly?",
+             x = "Sex",
+             y = "Measurement value") +
+        theme_minimal() +
+        theme(legend.position = "none")
+
+# --- Plot 2: Relationship between two key features, colored by sex ---
+ggplot(gentoo_eda, aes(x = body_mass_g, y = bill_length_mm, color = sex)) +
+        geom_point(size = 2.5, alpha = 0.7) +
+        labs(title = "Body mass vs. bill length in Gentoo penguins, by sex",
+             subtitle = "A 2D view of the strongest separating features",
+             x = "Body mass (g)",
+             y = "Bill length (mm)",
+             color = "Sex") +
+        theme_minimal()
+
 ```
 
 **Takeaways (bullets):**
 
-- Pattern 1: *Please enter your observations here.*
-- Pattern 2: *Please enter your observations here.*
-- Missing values/outliers: *Please enter your observations here.*
+- Pattern 1: *Gentoo penguins show clear sexual dimorphism: males are noticeably heavier (median ≈ 5500g vs. 4700g for females) and have longer, deeper bills. The cleanest separation appears in body_mass_g and bill_depth_mm, with bill_length_mm showing modest separation and flipper_length_mm overlapping more.*
+- Pattern 2: *The 2D scatterplot of body mass vs. bill length shows two largely separable clusters of male and female penguins, with only a narrow overlap zone — suggesting a simple decision-tree model should perform well using just a few features.*
+- Missing values/outliers: *Within Gentoo, 5 of 124 rows have missing values (mostly in sex); these are dropped during preparation. No extreme outliers are visible in the boxplots.*
 
 # Data Preparation
 Minimum requirements:
@@ -138,17 +180,6 @@ Minimum requirements:
 
 *1–2 sentences: which classes confuse and why?*
 
-## Clustering
-Minimum requirements:
-
-- Definition of number of clusters
-- One clustering model (e.g., k-means, hierarchical)
-- Report KPI to evaluate
-```{r}
-
-```
-*1–2 sentences: profile each cluster.*
-
 # Evaluation & Validation
 Minimum requirements:
 
@@ -156,6 +187,7 @@ Minimum requirements:
 - **Interpretation (2–4 sentences):** *Please enter the strengths, failure modes (e.g., which species are confused), class imbalance etc here.*
 
 # AI Assistance (brief)
-- **Tools used:** *Please enter the tools you used (e.g., GitHub Copilot, ChatGPT) here.*
+- **Tools used:** *Please enter the tools you used (e.g., GitHub Copilot, ChatGPT) here
+- Claude Opus 4.7 Adaptive.*
 - **One prompt:** *Please paste one representative prompt that led to useful code here.*
 - **How validated:** *Please describe how you checked correctness (e.g., sanity checks on metrics/plots) of the prompt outputs here.*

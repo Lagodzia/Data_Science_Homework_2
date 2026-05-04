@@ -9,6 +9,7 @@ output:
 ---
 
 ```{r setup, include=FALSE}
+# R version 4.5.2 (2025-10-31)
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 set.seed(42)
 
@@ -24,7 +25,7 @@ set.seed(42)
 # load libraries
 library(palmerpenguins)
 library(tidyverse)
-library(ggplot2)
+library(ggplot2) # explicitely load ggplot2 for plotting functions, even though it's part of tidyverse
 
 # Add any other libraries you need here:
 library(caret)          # train/test split, confusionMatrix,unified model interface
@@ -33,7 +34,7 @@ library(rpart.plot)     # nice tree visualization
 ```
 
 # Executive summary
-**This assignment examines whether the sex of Gentoo penguins can be predicted using physical measurements such as bill length, bill depth, flipper length, and body mass. After cleaning the dataset and removing missing values, a decision tree model was trained using an 80/20 train-test split. The model achieved an accuracy of 0.913 and an F1 score of 0.923, significantly outperforming a baseline of approximately 52%, with body mass and bill depth identified as the most important features. These results indicate that physical characteristics contain strong predictive information for distinguishing between male and female penguins. This suggests that even simple, interpretable models can effectively capture underlying biological differences.**
+*This assignment examines whether the sex of Gentoo penguins can be predicted using physical measurements such as bill length, bill depth, flipper length, and body mass. After cleaning the dataset and removing missing values, a decision tree model was trained using an 80/20 train-test split. The model achieved an accuracy of 0.913 and an F1 score of 0.923, significantly outperforming a baseline of approximately 52%, with body mass and bill depth identified as the most important features. These results indicate that physical characteristics contain strong predictive information for distinguishing between male and female penguins. This suggests that even simple, interpretable models can effectively capture underlying biological differences.*
 
 # Framing the Problem
 - **Question:** *To what extent can physical measurements predict the sex of Gentoo penguins, and which features are most informative?*
@@ -91,11 +92,10 @@ table(gentoo_overview$sex, useNA = "ifany")
 
 ```{r}
 
-# Filter to Gentoo, drop NAs in measurement & sex columns for plotting only
+# Filter to Gentoo, drop NAs for plotting only
 gentoo_eda <- penguins %>%
         filter(species == "Gentoo") %>%
-        drop_na(bill_length_mm, bill_depth_mm,
-                flipper_length_mm, body_mass_g, sex)
+        drop_na()
 
 # --- Plot 1: Distribution of all 4 numeric measurements by sex ---
 gentoo_long <- gentoo_eda %>%
@@ -136,15 +136,15 @@ ggplot(gentoo_eda, aes(x = body_mass_g, y = bill_length_mm, color = sex)) +
 # Data Preparation
 
 ```{r}
-# Filter to Gentoo, drop incomplete rows, ensure factors
+# Filter to Gentoo, drop incomplete rows
 gentoo_clean <- penguins %>%
         filter(species == "Gentoo") %>%
-        drop_na() %>%
-        mutate(
-                sex     = factor(sex),
-                species = factor(species),
-                island  = factor(island)
-        )
+        drop_na()
+
+# ensure categorical variables are factors
+is.factor(gentoo_clean$sex)
+is.factor(gentoo_clean$species)
+is.factor(gentoo_clean$island)
 
 # Verification of the cleaned dataset
 dim(gentoo_clean)
@@ -245,8 +245,3 @@ ggplot(importance_df, aes(x = reorder(variable, importance), y = importance)) +
 - **Tools used:** *Claude Opus 4.7 Adaptive; GitHub Copilot (GPT-5.2-Codex); Chat GPT*
 - **One prompt:** *We are using the Palmer Penguins dataset for a Fundamentals of Data Science homework. Our question is whether physical measurements can predict the sex of Gentoo penguins. Help us implement a simple decision tree model in R with an 80/20 train-test split, confusion matrix, accuracy, F1 score, and feature importance.*
 - **How validated:** *We validated the AI-assisted code and text by running the full R Markdown file without errors, checking that the 80/20 train-test split preserved class balance, comparing the model accuracy to a majority-class baseline, and inspecting the confusion matrix. We also checked that the feature importance results were consistent with the EDA plots, especially the visible separation by body mass and bill depth. In addition, AI tools were used for rephrasing, grammar correction, and improving the clarity and consistency of the written text. All AI-assisted content was manually reviewed to ensure it accurately reflects the analysis results and aligns with the assignment requirements and lecture material.*
-
-# session info
-```{r}
-sessionInfo()
-```

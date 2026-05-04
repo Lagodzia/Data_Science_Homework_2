@@ -369,14 +369,13 @@ Dinis</h4>
 <li><a href="#evaluation-validation" id="toc-evaluation-validation"><span class="toc-section-number">7</span>
 Evaluation &amp; Validation</a></li>
 <li><a href="#ai-assistance" id="toc-ai-assistance"><span class="toc-section-number">8</span> AI Assistance</a></li>
-<li><a href="#session-info" id="toc-session-info"><span class="toc-section-number">9</span> session info</a></li>
 </ul>
 </div>
 
 <div id="executive-summary" class="section level1" number="1">
 <h1><span class="header-section-number">1</span> Executive summary</h1>
-<p><strong>This assignment examines whether the sex of Gentoo penguins
-can be predicted using physical measurements such as bill length, bill
+<p><em>This assignment examines whether the sex of Gentoo penguins can
+be predicted using physical measurements such as bill length, bill
 depth, flipper length, and body mass. After cleaning the dataset and
 removing missing values, a decision tree model was trained using an
 80/20 train-test split. The model achieved an accuracy of 0.913 and an
@@ -386,7 +385,7 @@ important features. These results indicate that physical characteristics
 contain strong predictive information for distinguishing between male
 and female penguins. This suggests that even simple, interpretable
 models can effectively capture underlying biological
-differences.</strong></p>
+differences.</em></p>
 </div>
 <div id="framing-the-problem" class="section level1" number="2">
 <h1><span class="header-section-number">2</span> Framing the
@@ -503,11 +502,10 @@ cat(&quot;Gentoo penguins:&quot;, nrow(gentoo_overview), &quot;\n&quot;)</code><
 <div id="explorative-data-analysis" class="section level1" number="4">
 <h1><span class="header-section-number">4</span> Explorative Data
 Analysis</h1>
-<pre class="r"><code># Filter to Gentoo, drop NAs in measurement &amp; sex columns for plotting only
+<pre class="r"><code># Filter to Gentoo, drop NAs for plotting only
 gentoo_eda &lt;- penguins %&gt;%
         filter(species == &quot;Gentoo&quot;) %&gt;%
-        drop_na(bill_length_mm, bill_depth_mm,
-                flipper_length_mm, body_mass_g, sex)
+        drop_na()
 
 # --- Plot 1: Distribution of all 4 numeric measurements by sex ---
 gentoo_long &lt;- gentoo_eda %&gt;%
@@ -555,17 +553,19 @@ extreme outliers are visible in the boxplots.</em></li>
 </div>
 <div id="data-preparation" class="section level1" number="5">
 <h1><span class="header-section-number">5</span> Data Preparation</h1>
-<pre class="r"><code># Filter to Gentoo, drop incomplete rows, ensure factors
+<pre class="r"><code># Filter to Gentoo, drop incomplete rows
 gentoo_clean &lt;- penguins %&gt;%
         filter(species == &quot;Gentoo&quot;) %&gt;%
-        drop_na() %&gt;%
-        mutate(
-                sex     = factor(sex),
-                species = factor(species),
-                island  = factor(island)
-        )
+        drop_na()
 
-# Verification of the cleaned dataset
+# ensure categorical variables are factors
+is.factor(gentoo_clean$sex)</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+<pre class="r"><code>is.factor(gentoo_clean$species)</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+<pre class="r"><code>is.factor(gentoo_clean$island)</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+<pre class="r"><code># Verification of the cleaned dataset
 dim(gentoo_clean)</code></pre>
 <pre><code>## [1] 119   8</code></pre>
 <pre class="r"><code>table(gentoo_clean$sex)</code></pre>
@@ -573,20 +573,20 @@ dim(gentoo_clean)</code></pre>
 ## female   male 
 ##     58     61</code></pre>
 <pre class="r"><code>summary(gentoo_clean)</code></pre>
-<pre><code>##    species       island    bill_length_mm  bill_depth_mm   flipper_length_mm
-##  Gentoo:119   Biscoe:119   Min.   :40.90   Min.   :13.10   Min.   :203.0    
-##                            1st Qu.:45.35   1st Qu.:14.20   1st Qu.:212.0    
-##                            Median :47.40   Median :15.00   Median :216.0    
-##                            Mean   :47.57   Mean   :15.00   Mean   :217.2    
-##                            3rd Qu.:49.60   3rd Qu.:15.75   3rd Qu.:221.5    
-##                            Max.   :59.60   Max.   :17.30   Max.   :231.0    
-##   body_mass_g       sex          year     
-##  Min.   :3950   female:58   Min.   :2007  
-##  1st Qu.:4700   male  :61   1st Qu.:2007  
-##  Median :5050               Median :2008  
-##  Mean   :5092               Mean   :2008  
-##  3rd Qu.:5500               3rd Qu.:2009  
-##  Max.   :6300               Max.   :2009</code></pre>
+<pre><code>##       species          island    bill_length_mm  bill_depth_mm  
+##  Adelie   :  0   Biscoe   :119   Min.   :40.90   Min.   :13.10  
+##  Chinstrap:  0   Dream    :  0   1st Qu.:45.35   1st Qu.:14.20  
+##  Gentoo   :119   Torgersen:  0   Median :47.40   Median :15.00  
+##                                  Mean   :47.57   Mean   :15.00  
+##                                  3rd Qu.:49.60   3rd Qu.:15.75  
+##                                  Max.   :59.60   Max.   :17.30  
+##  flipper_length_mm  body_mass_g       sex          year     
+##  Min.   :203.0     Min.   :3950   female:58   Min.   :2007  
+##  1st Qu.:212.0     1st Qu.:4700   male  :61   1st Qu.:2007  
+##  Median :216.0     Median :5050               Median :2008  
+##  Mean   :217.2     Mean   :5092               Mean   :2008  
+##  3rd Qu.:221.5     3rd Qu.:5500               3rd Qu.:2009  
+##  Max.   :231.0     Max.   :6300               Max.   :2009</code></pre>
 <p><em>We restrict the dataset to Gentoo penguins (the population of our
 research question) and drop rows with any missing values, leaving 119
 complete observations. Categorical variables (sex, species, island) are
@@ -751,59 +751,6 @@ manually reviewed to ensure it accurately reflects the analysis results
 and aligns with the assignment requirements and lecture
 material.</em></li>
 </ul>
-</div>
-<div id="session-info" class="section level1" number="9">
-<h1><span class="header-section-number">9</span> session info</h1>
-<pre class="r"><code>sessionInfo()</code></pre>
-<pre><code>## R version 4.5.2 (2025-10-31)
-## Platform: aarch64-apple-darwin20
-## Running under: macOS Sequoia 15.6.1
-## 
-## Matrix products: default
-## BLAS:   /System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/libBLAS.dylib 
-## LAPACK: /Library/Frameworks/R.framework/Versions/4.5-arm64/Resources/lib/libRlapack.dylib;  LAPACK version 3.12.1
-## 
-## locale:
-## [1] C/en_GB.UTF-8/C/C/C/C
-## 
-## time zone: Europe/Zurich
-## tzcode source: internal
-## 
-## attached base packages:
-## [1] stats     graphics  grDevices utils     datasets  methods   base     
-## 
-## other attached packages:
-##  [1] rpart.plot_3.1.4     rpart_4.1.27         caret_7.0-1         
-##  [4] lattice_0.22-7       lubridate_1.9.5      forcats_1.0.1       
-##  [7] stringr_1.6.0        dplyr_1.2.0          purrr_1.2.1         
-## [10] readr_2.2.0          tidyr_1.3.2          tibble_3.3.1        
-## [13] ggplot2_4.0.3        tidyverse_2.0.0      palmerpenguins_0.1.1
-## 
-## loaded via a namespace (and not attached):
-##  [1] tidyselect_1.2.1     timeDate_4052.112    farver_2.1.2        
-##  [4] S7_0.2.1             fastmap_1.2.0        pROC_1.19.0.1       
-##  [7] digest_0.6.39        timechange_0.4.0     lifecycle_1.0.5     
-## [10] survival_3.8-3       magrittr_2.0.4       compiler_4.5.2      
-## [13] rlang_1.1.7          sass_0.4.10          tools_4.5.2         
-## [16] utf8_1.2.6           yaml_2.3.12          data.table_1.18.2.1 
-## [19] knitr_1.51           labeling_0.4.3       plyr_1.8.9          
-## [22] RColorBrewer_1.1-3   withr_3.0.2          nnet_7.3-20         
-## [25] grid_4.5.2           stats4_4.5.2         e1071_1.7-17        
-## [28] future_1.70.0        globals_0.19.1       scales_1.4.0        
-## [31] iterators_1.0.14     MASS_7.3-65          cli_3.6.5           
-## [34] rmarkdown_2.30       generics_0.1.4       otel_0.2.0          
-## [37] future.apply_1.20.2  reshape2_1.4.5       tzdb_0.5.0          
-## [40] cachem_1.1.0         proxy_0.4-29         splines_4.5.2       
-## [43] parallel_4.5.2       vctrs_0.7.1          hardhat_1.4.3       
-## [46] Matrix_1.7-4         jsonlite_2.0.0       hms_1.1.4           
-## [49] listenv_0.10.1       foreach_1.5.2        gower_1.0.2         
-## [52] jquerylib_0.1.4      recipes_1.3.2        glue_1.8.0          
-## [55] parallelly_1.47.0    codetools_0.2-20     stringi_1.8.7       
-## [58] gtable_0.3.6         pillar_1.11.1        htmltools_0.5.9     
-## [61] ipred_0.9-15         lava_1.9.0           R6_2.6.1            
-## [64] evaluate_1.0.5       bslib_0.10.0         class_7.3-23        
-## [67] Rcpp_1.1.1           nlme_3.1-168         prodlim_2026.03.11  
-## [70] xfun_0.56            pkgconfig_2.0.3      ModelMetrics_1.2.2.2</code></pre>
 </div>
 
 

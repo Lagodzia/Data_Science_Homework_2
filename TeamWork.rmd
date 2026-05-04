@@ -12,9 +12,6 @@ output:
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 set.seed(42)
 
-# selects the mirror.
-chooseCRANmirror(ind=81)
-
 #Run once and then comment out:
 # install.packages(c("pandoc"))
 # library(pandoc)
@@ -22,30 +19,17 @@ chooseCRANmirror(ind=81)
 # chooseCRANmirror(ind=81)
 
 #Run once and then comment out:
-# install.packages(c("palmerpenguins","tidyverse","ggplot2", "caret", "rpart", "rpart.plot", "randomForest", "e1071", "class", "kknn", "gbm", "xgboost", "nnet", "pROC", "MLmetrics"))
+# install.packages(c("palmerpenguins","tidyverse","ggplot2", "caret", "rpart", "rpart.plot"))
 
 # load libraries
 library(palmerpenguins)
 library(tidyverse)
 library(ggplot2)
 
-# TODO: use only libraries needed for this work and remove unused ones.
 # Add any other libraries you need here:
 library(caret)          # train/test split, confusionMatrix,unified model interface
 library(rpart)          # Decision Tree
 library(rpart.plot)     # nice tree visualization
-library(randomForest)   # Random Forest
-library(e1071)          # Naïve Bayes + SVM
-library(class)          # KNN (basic version)
-library(kknn)           # KNN via caret
-library(gbm)            # Gradient Boosting Trees
-library(xgboost)        # alternative gradient boosting (faster, more popular)
-library(nnet)           # simple Neural Networks (built-in style)
-
-# Evaluation extras
-library(pROC)           # ROC curves (slide 11 of your lecture)
-library(MLmetrics)      # F1 score helper if confusionMatrix isn't enough
-
 ```
 
 # Executive summary
@@ -60,7 +44,7 @@ library(MLmetrics)      # F1 score helper if confusionMatrix isn't enough
 # Data Understanding
 ```{r}
 # Load data
-data <- data("penguins", package = "palmerpenguins")
+data("penguins", package = "palmerpenguins")
 
 # Shows only first 6 rows of the data frame
 head(penguins)
@@ -179,7 +163,6 @@ model_data <- gentoo_clean %>%
         select(sex, bill_length_mm, bill_depth_mm, flipper_length_mm, body_mass_g)
 
 # Stratified 80/20 train-test split
-set.seed(42)
 split_index <- createDataPartition(model_data$sex, p = 0.8, list = FALSE)
 
 train_data <- model_data[split_index, ]
@@ -254,7 +237,7 @@ ggplot(importance_df, aes(x = reorder(variable, importance), y = importance)) +
 
 - **Metric:** *The model achieves an accuracy of 0.913 and an F1 score of 0.923 on the test set, clearly outperforming the baseline accuracy of approximately 0.52.*
 
-- **Interpretation:** *The model performs well on a balanced test set (11 female, 12 male), correctly classifying all male penguins and misclassifying only 2 female penguins. Feature importance shows that body mass (33.35) and bill depth (25.32) are the most influential predictors, consistent with patterns observed in the EDA. These results indicate that the model captures the main structure of the data. A limitation is the small test set (23 observations), so results should be interpreted as an estimate rather than a definitive measure.
+- **Interpretation:** *The model performs well on a balanced test set (11 female, 12 male), correctly classifying all male penguins and misclassifying only 2 female penguins. Feature importance shows that body mass (33.35) and bill depth (25.32) are the most influential predictors, consistent with patterns observed in the EDA. These results indicate that the model captures the main structure of the data. A limitation is the small test set (23 observations), so results should be interpreted as an estimate rather than a definitive measure.*
 
 
 
@@ -262,3 +245,8 @@ ggplot(importance_df, aes(x = reorder(variable, importance), y = importance)) +
 - **Tools used:** *Claude Opus 4.7 Adaptive; GitHub Copilot (GPT-5.2-Codex); Chat GPT*
 - **One prompt:** *We are using the Palmer Penguins dataset for a Fundamentals of Data Science homework. Our question is whether physical measurements can predict the sex of Gentoo penguins. Help us implement a simple decision tree model in R with an 80/20 train-test split, confusion matrix, accuracy, F1 score, and feature importance.*
 - **How validated:** *We validated the AI-assisted code and text by running the full R Markdown file without errors, checking that the 80/20 train-test split preserved class balance, comparing the model accuracy to a majority-class baseline, and inspecting the confusion matrix. We also checked that the feature importance results were consistent with the EDA plots, especially the visible separation by body mass and bill depth. In addition, AI tools were used for rephrasing, grammar correction, and improving the clarity and consistency of the written text. All AI-assisted content was manually reviewed to ensure it accurately reflects the analysis results and aligns with the assignment requirements and lecture material.*
+
+# session info
+```{r}
+sessionInfo()
+```
